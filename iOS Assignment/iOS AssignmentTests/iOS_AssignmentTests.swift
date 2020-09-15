@@ -19,16 +19,22 @@ class iOS_AssignmentTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    func testGetUsersFromServer() {
+        let expect = expectation(description: "signin")
+        
+        Request.getUsers(page: 1, pageSize: 50, seed: nil) { (response, error) in
+            #if DEBUG
+            print("\(String(describing: response?.info?.seed)) \(#function)")
+            #endif
+            XCTAssert(error == nil, error.debugDescription)
+            
+            expect.fulfill()
+        }
+        
+        waitForExpectations(timeout: 60) { (error) in
+            #if DEBUG
+            print("\(error.debugDescription) \(#function)")
+            #endif
         }
     }
-
 }
