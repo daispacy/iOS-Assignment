@@ -10,24 +10,18 @@ import UIKit
 
 class FillHeaderView:UIView {
     
-    var subDistance:CGFloat = 0 {
-        didSet {
-            setNeedsLayout()
-        }
-    }
-    
     override func layoutSubviews() {
         super.layoutSubviews()
         
         // remove line
         layer.sublayers?.forEach({($0 as? CAShapeLayer)?.removeFromSuperlayer()})
         
-        if subDistance == 0 {return}
+        if subviews.count == 0 {return}
         
-        let startingPoint   = CGPoint(x: bounds.minX, y: (bounds.maxY - subDistance)*0.18)
-        let secondPoint   = CGPoint(x: bounds.minX, y: bounds.minY - subDistance)
-        let threePoint   = CGPoint(x: bounds.maxX, y: bounds.minY - subDistance)
-        let endingPoint     = CGPoint(x: bounds.maxX, y: (bounds.maxY - subDistance)*0.18)
+        let startingPoint   = CGPoint(x: bounds.minX, y: (bounds.maxY - 10)*0.18)
+        let secondPoint   = CGPoint(x: bounds.minX, y: bounds.minY - 10)
+        let threePoint   = CGPoint(x: bounds.maxX, y: bounds.minY - 10)
+        let endingPoint     = CGPoint(x: bounds.maxX, y: (bounds.maxY - 10)*0.18)
         
         // add line to top button
         let path = UIBezierPath()

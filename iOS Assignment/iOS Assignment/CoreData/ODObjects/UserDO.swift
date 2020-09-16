@@ -26,7 +26,10 @@ open class UserDO: NSManagedObject {
     }
     
     @nonobjc public class func fetchRequestD() -> NSFetchRequest<UserDO> {
-        return NSFetchRequest<UserDO>(entityName: "UserDO")
+        let fetch = NSFetchRequest<UserDO>(entityName: "UserDO")
+        fetch.returnsObjectsAsFaults = false
+        fetch.shouldRefreshRefetchedObjects = true
+        return fetch
     }
     
     /// save user to local
@@ -35,14 +38,14 @@ open class UserDO: NSManagedObject {
     ///   - complete: complete with error
     static func save(user:User,
                      _ complete:((Any?)->Void)?) {
-        let container = CoreDataStack.sharedInstance.saveManagedObjectContext
+        let container = CoreDataStack.sharedInstance.managedObjectContext
         let group = DispatchGroup()
         group.enter()
-        clearData(email:user.email) {
+        clearData(email:user.email) {error in
             group.leave()
         }
         
-        group.notify(queue: DispatchQueue.global(qos: .default)) {
+        group.notify(queue: DispatchQueue.main) {
             container.perform {
                 if let object = NSEntityDescription.insertNewObject(forEntityName: "UserDO", into: container) as? UserDO {
                     object.jsonString = try? user.jsonString()
@@ -86,23 +89,20 @@ open class UserDO: NSManagedObject {
     ///   - email: user email
     ///   - complete: complete
     static func clearData(email:String?,
-                          _ complete:(()->Void)?) {
+                          _ complete:((Any?)->Void)?) {
         guard let email = email else {
-            complete?()
+            complete?(nil)
             return
         }
         do {
-            let context = CoreDataStack.sharedInstance.saveManagedObjectContext
+            let context = CoreDataStack.sharedInstance.managedObjectContext
             let fetchRequest = UserDO.fetchRequestD()
             fetchRequest.predicate = NSPredicate(format: "email IN %@",[email])
             do {
                 _ = try context.fetch(fetchRequest).map({context.delete($0)})
-                complete?()
+                complete?(nil)
             } catch let error {
-                #if DEBUG
-                fatalError(error.localizedDescription)
-                #endif
-                complete?()
+                complete?(error.localizedDescription)
             }
         }
     }

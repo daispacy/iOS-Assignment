@@ -52,22 +52,19 @@
                                     <rect key="frame" x="0.0" y="0.0" width="823" height="168"/>
                                     <subviews>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="cxD-Ji-rWI" customClass="RoundWithBorderView" customModule="iOS_Assignment" customModuleProvider="target">
-                                            <rect key="frame" x="327.5" y="42" width="168" height="168"/>
+                                            <rect key="frame" x="206" y="42" width="411.5" height="168"/>
                                             <subviews>
                                                 <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="lOC-kw-nyk" userLabel="avatar" customClass="RoundImageView" customModule="iOS_Assignment" customModuleProvider="target">
-                                                    <rect key="frame" x="3" y="3" width="162" height="162"/>
-                                                    <constraints>
-                                                        <constraint firstAttribute="width" secondItem="lOC-kw-nyk" secondAttribute="height" id="cIG-uB-9nE"/>
-                                                    </constraints>
+                                                    <rect key="frame" x="3" y="3" width="405.5" height="162"/>
                                                 </imageView>
                                             </subviews>
                                             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                             <constraints>
                                                 <constraint firstItem="lOC-kw-nyk" firstAttribute="leading" secondItem="cxD-Ji-rWI" secondAttribute="leading" constant="3" id="PBA-ts-ICK"/>
                                                 <constraint firstAttribute="trailing" secondItem="lOC-kw-nyk" secondAttribute="trailing" constant="3" id="Qhu-Mv-zu0"/>
+                                                <constraint firstAttribute="height" secondItem="cxD-Ji-rWI" secondAttribute="width" priority="999" id="jcA-VC-wSW"/>
                                                 <constraint firstAttribute="bottom" secondItem="lOC-kw-nyk" secondAttribute="bottom" constant="3" id="qw0-Ax-qMq"/>
                                                 <constraint firstItem="lOC-kw-nyk" firstAttribute="top" secondItem="cxD-Ji-rWI" secondAttribute="top" constant="3" id="zO7-aG-znV"/>
-                                                <constraint firstAttribute="height" priority="999" constant="140" id="zrl-42-Nui"/>
                                             </constraints>
                                             <userDefinedRuntimeAttributes>
                                                 <userDefinedRuntimeAttribute type="color" keyPath="color">
@@ -80,6 +77,7 @@
                                     <constraints>
                                         <constraint firstAttribute="bottom" secondItem="cxD-Ji-rWI" secondAttribute="bottom" multiplier="0.8" id="ETM-kv-mOY"/>
                                         <constraint firstItem="cxD-Ji-rWI" firstAttribute="centerX" secondItem="rs1-Nq-jQ1" secondAttribute="centerX" id="X6L-Jz-pbm"/>
+                                        <constraint firstItem="cxD-Ji-rWI" firstAttribute="width" secondItem="rs1-Nq-jQ1" secondAttribute="width" multiplier="0.5" id="dK2-Zz-V3W"/>
                                         <constraint firstAttribute="height" secondItem="cxD-Ji-rWI" secondAttribute="height" id="dLZ-DV-A66"/>
                                     </constraints>
                                 </view>

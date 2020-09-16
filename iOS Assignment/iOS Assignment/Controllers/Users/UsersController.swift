@@ -19,7 +19,6 @@ class UsersController: UIViewController {
     
     // MARK: -  outlet
     @IBOutlet weak var vwCoverStickers: FillHeaderView!
-    @IBOutlet weak var stackStickers: UIStackView!
     
     // MARK: -  properties
     var originalStickerPoint:CGPoint = .zero // original position animation view
@@ -40,9 +39,9 @@ class UsersController: UIViewController {
         didSet {
             switch state {
             case .api:
-                title = "Users"
+                title = ""
             case .favourite:
-                title = "Favourite Users"
+                title = "Favorite Users"
             }
         }
     }
@@ -62,7 +61,7 @@ class UsersController: UIViewController {
             loadUsers(isRefresh: true)
         } else {
             // load users from local
-            loadFavouriteUsers()
+            loadFavoriteUsers()
         }
     }
     
@@ -70,7 +69,6 @@ class UsersController: UIViewController {
     private func config() {
         
         // set background
-        title = "Users"
         view.backgroundColor = .smokeGray
         navigationController?.view.backgroundColor = .smokeGray
         
@@ -88,10 +86,9 @@ class UsersController: UIViewController {
     
     @objc func actionRightBarButton(_ sender:Any) {
         
-        if state == .favourite {return} // prevent load from local
+        if state == .favourite {return} // prevent load again
         
-        reset()
-        loadFavouriteUsers()
+        loadFavoriteUsers()
     }
     /// get users from server
     /// - Parameter isRefresh: false if go on load more pages
@@ -118,7 +115,7 @@ class UsersController: UIViewController {
                 guard let res = response else {
                     // show error & load data local
                     _self.shouldLoadMore = false
-                    _self.loadFavouriteUsers()
+                    _self.loadFavoriteUsers()
                     return
                 }
                 if _self.usersResponse == nil { // store user response to get seed load more pages
@@ -135,9 +132,12 @@ class UsersController: UIViewController {
         }
     }
     
-    private func loadFavouriteUsers() {
+    private func loadFavoriteUsers() {
         
         state = .favourite
+        
+        // reset UI
+        reset()
         
         self.view.startLoading()
         UserDO.getFavouriteUsers {[weak self] (users) in
@@ -156,13 +156,11 @@ class UsersController: UIViewController {
         if page == 1 { // setup stickers in first request or reset
             setUpStickers()
         }
-        
-        self.view.showMessage(msg: self.users.count > 0 ? nil : "There is no user.")
     }
     
     /// save user to local
     /// - Parameter user: User
-    private func addUserToFavourite(user:User) {
+    private func addUserToFavorite(user:User) {
         UserDO.save(user: user, nil)
     }
 }
@@ -176,12 +174,11 @@ private extension UsersController {
         usersResponse = nil
         users.removeAll()
         
-        stackStickers.arrangedSubviews.forEach({$0.removeFromSuperview()})
-        vwCoverStickers.subDistance = 0
+        vwCoverStickers.subviews.forEach({$0.removeFromSuperview()})
     }
     
     /// setup list user stickers with data
-    private func setUpStickers() {
+    private func setUpStickers(isInsertNew:Bool = false) {
         
         // check should load more users from server
         if shouldLoadMore && users.count < 6 && state == .api {
@@ -197,42 +194,66 @@ private extension UsersController {
             max = users.count
         }
         
-        // add User stick
-        if max == 0 {return} // nothing to show
+        self.view.showMessage(msg: max > 0 ? nil : "There is no user.")
         
-        for tag in (1...max) {
-            if stackStickers.viewWithTag(tag + 1000) == nil { // if a sticker is removed it should added again
+        // add User stick
+        if max == 0 { // nothing to show
+            return
+        }
+        
+        if isInsertNew {
+            if vwCoverStickers.subviews.count < max {
                 let stickerView = UserStickerView(frame: .zero)
-                stickerView.tag = tag + 1000
-                stackStickers.addArrangedSubview(stickerView)
+                vwCoverStickers.insertSubview(stickerView, at: 0)
+                stickerView.translatesAutoresizingMaskIntoConstraints = false
+                stickerView.leadingAnchor.constraint(equalTo: vwCoverStickers.leadingAnchor, constant: 10).isActive = true
+                vwCoverStickers.trailingAnchor.constraint(equalTo: stickerView.trailingAnchor,constant: 10).isActive = true
+            }
+        } else {
+            for _ in (0..<max) {
+                let stickerView = UserStickerView(frame: .zero)
+                vwCoverStickers.insertSubview(stickerView, at: 0)
+                stickerView.translatesAutoresizingMaskIntoConstraints = false
+                stickerView.leadingAnchor.constraint(equalTo: vwCoverStickers.leadingAnchor, constant: 10).isActive = true
+                vwCoverStickers.trailingAnchor.constraint(equalTo: stickerView.trailingAnchor,constant: 10).isActive = true
             }
         }
         
-        // if subviews > 4, first subview should be hidden
-        if max >= maximumCard {
-            stackStickers.arrangedSubviews.first?.alpha = 0
+        vwCoverStickers.subviews.enumerated().forEach { (e) in
+            vwCoverStickers.constraints.first(where: { (constraint) -> Bool in
+                return constraint.identifier == "topCover\(e.offset)"
+            })?.isActive = false
+            let top = e.element.topAnchor.constraint(equalTo: vwCoverStickers.topAnchor, constant: (CGFloat(vwCoverStickers.subviews.count - 1) - CGFloat(e.offset)) * spacingStickers)
+            top.identifier = "topCover\(e.offset)"
+            vwCoverStickers.addConstraint(top)
+        }
+        
+        vwCoverStickers.constraints.first(where: { (constraint) -> Bool in
+            return constraint.identifier == "bottomCover"
+        })?.isActive = false
+        if let view = vwCoverStickers.subviews.last {
+            let bottom = vwCoverStickers.bottomAnchor.constraint(equalTo: view.bottomAnchor,constant: CGFloat(vwCoverStickers.subviews.count) * spacingStickers)
+            bottom.identifier = "bottomCover"
+            vwCoverStickers.addConstraint(bottom)
         }
         
         // set scale and user for sticker
-        stackStickers.arrangedSubviews.reversed().enumerated().forEach { (e) in
+        vwCoverStickers.subviews.reversed().enumerated().forEach { (e) in
             e.element.transform = CGAffineTransform.identity.scaledBy(x: self.scales[e.offset], y: 1)
             e.element.alpha = self.alphas[e.offset]
-            if e.offset < 3 {
+            if e.offset < 2 {
                 (e.element as? UserStickerView)?.show(user: users[e.offset])
             }
         }
         
         // add pangesture for last subview
-        if let lasted = stackStickers.arrangedSubviews.last {
+        if let lasted = vwCoverStickers.subviews.last {
             let pan = UIPanGestureRecognizer(target: self, action: #selector(swipe(_:)))
             lasted.addGestureRecognizer(pan)
         }
         
-        vwCoverStickers.subDistance = CGFloat(stackStickers.arrangedSubviews.filter({$0.alpha != 0}).count * 10) // 10 is constant leading beetwen stack vs cover
-        
-        if standardSpacing == 0 {
-            standardSpacing = -(self.stackStickers.arrangedSubviews.first?.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height ?? 0) - spacingStickers*2
-            stackStickers.spacing = standardSpacing
+        UIView.animate(withDuration: 0.2) {
+            self.vwCoverStickers.layoutIfNeeded()
         }
     }
     
@@ -252,15 +273,12 @@ private extension UsersController {
             view.frame.origin = CGPoint(x: translate.x, y: originalStickerPoint.y + (spacingStickers * percent))
             
             // change alpha first subview
-            if stackStickers.arrangedSubviews.count >= maximumCard {
-                stackStickers.arrangedSubviews.first?.alpha = percent
+            if vwCoverStickers.subviews.count >= maximumCard {
+                vwCoverStickers.subviews.first?.alpha = percent
             }
             
-            // move stack y = last subview
-            //            stackStickers.transform = CGAffineTransform.identity.translatedBy(x: 0, y: -(spacingStickers * percent))
-            
             // set scale again for subviews except last subviews
-            stackStickers.arrangedSubviews.reversed().suffix(stackStickers.arrangedSubviews.count - 1).enumerated().forEach { (e) in
+            vwCoverStickers.subviews.reversed().suffix(vwCoverStickers.subviews.count - 1).enumerated().forEach { (e) in
                 UIView.animate(withDuration: 0.1) {
                     e.element.transform = CGAffineTransform.identity.scaledBy(x: self.scales[e.offset], y: 1)
                     e.element.alpha = self.alphas[e.offset]
@@ -276,7 +294,7 @@ private extension UsersController {
                     // save to local with user get from api
                     if let user = (view as? UserStickerView)?.getUser(),
                        state == .api {
-                        addUserToFavourite(user: user)
+                        addUserToFavorite(user: user)
                     }
                 } else {
                     
@@ -289,7 +307,6 @@ private extension UsersController {
                 
                 let destinationX = shouldAddFavourite ? view.frame.width : -view.frame.width
                 UIView.animate(withDuration: 0.2, animations: {
-                    //                    self.stackStickers.transform = CGAffineTransform.identity.translatedBy(x: 0, y: -(self.spacingStickers))
                     view.frame.origin = CGPoint(x: destinationX*2, y: self.originalStickerPoint.y + (self.spacingStickers))
                 }) { (bool) in
                     // remove
@@ -297,7 +314,7 @@ private extension UsersController {
                     view.removeFromSuperview()
                     self.users.removeFirst()
                     
-                    self.setUpStickers()
+                    self.setUpStickers(isInsertNew: true)
                 }
                 
             } else { // cancel process
@@ -306,9 +323,7 @@ private extension UsersController {
                 UIView.animate(withDuration: 0.3) {
                     view.frame.origin = self.originalStickerPoint
                     
-                    self.stackStickers.arrangedSubviews.first?.alpha = 0
-                    
-                    self.stackStickers.arrangedSubviews.reversed().enumerated().forEach { (e) in
+                    self.vwCoverStickers.subviews.reversed().enumerated().forEach { (e) in
                         e.element.transform = CGAffineTransform.identity.scaledBy(x: self.scales[e.offset], y: 1)
                         e.element.alpha = self.alphas[e.offset]
                     }
