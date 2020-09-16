@@ -35,7 +35,7 @@ open class UserDO: NSManagedObject {
     ///   - complete: complete with error
     static func save(user:User,
                      _ complete:((Any?)->Void)?) {
-        let container = CoreDataStack.sharedInstance.managedObjectContext
+        let container = CoreDataStack.sharedInstance.saveManagedObjectContext
         let group = DispatchGroup()
         group.enter()
         clearData(email:user.email) {
@@ -92,7 +92,7 @@ open class UserDO: NSManagedObject {
             return
         }
         do {
-            let context = CoreDataStack.sharedInstance.managedObjectContext
+            let context = CoreDataStack.sharedInstance.saveManagedObjectContext
             let fetchRequest = UserDO.fetchRequestD()
             fetchRequest.predicate = NSPredicate(format: "email IN %@",[email])
             do {

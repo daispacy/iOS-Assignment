@@ -10,7 +10,7 @@ import UIKit
 
 class ButtonSelectedWithBorderTop: UIButton {
 
-    @IBInspectable var lineColor: UIColor = #colorLiteral(red: 0.6666666667, green: 0.6901960784, blue: 0.7254901961, alpha: 1) {
+    @IBInspectable var lineColor: UIColor = .greenBorder {
         didSet {
             setNeedsLayout()
         }

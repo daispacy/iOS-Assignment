@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreLocation
 
 // MARK: - UsersResponse
 public class UsersResponse: Codable {
@@ -83,6 +84,12 @@ public class User: Codable {
     let id: ID?
     let picture: Picture?
     let nat: String?
+    
+    var isMale:Bool {
+        get {
+            return gender == "male"
+        }
+    }
 
     init(gender: String?, name: Name?, location: Location?, email: String?, login: Login?, dob: Dob?, registered: Dob?, phone: String?, cell: String?, id: ID?, picture: Picture?, nat: String?) {
         self.gender = gender
@@ -152,10 +159,55 @@ public class User: Codable {
     func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
         return String(data: try self.jsonData(), encoding: encoding)
     }
+    
+    func getFullName() -> String {
+        var fullname = ""
+        if let title = name?.title {
+            fullname += title + " "
+        }
+        if let fName = name?.first {
+            fullname += fName + " "
+        }
+        if let lName = name?.last {
+            fullname += lName
+        }
+        return fullname
+    }
+    
+    func getFullAddress() -> String {
+        var address = ""
+        if let number = location?.street?.number {
+            address += "\(number)" + " "
+        }
+        
+        if let name = location?.street?.name {
+            address += name + ", "
+        }
+        
+        if let city = location?.city {
+            address += city + ", "
+        }
+        
+        if let state = location?.state {
+            address += state + " "
+        }
+        
+        if let postCode = location?.postcode?.value as? String {
+            address += postCode + ", "
+        } else if let postCode = location?.postcode?.value as? Int {
+            address += "\(postCode)" + ", "
+        }
+        
+        if let country = location?.country {
+            address += country + " "
+        }
+        
+        return address
+    }
 }
 
 // MARK: - Dob
-class Dob: Codable {
+public class Dob: Codable {
     let date: String?
     let age: Int?
 
@@ -166,7 +218,7 @@ class Dob: Codable {
 }
 
 // MARK: - ID
-class ID: Codable {
+public class ID: Codable {
     let name, value: String?
 
     init(name: String?, value: String?) {
@@ -176,7 +228,7 @@ class ID: Codable {
 }
 
 // MARK: - Location
-class Location: Codable {
+public class Location: Codable {
     let street: Street?
     let city, state, country: String?
     let postcode: AnyCodable?
@@ -203,10 +255,22 @@ class Location: Codable {
         coordinates = try values.decodeIfPresent(Coordinates.self, forKey: .coordinates) ?? nil
         timezone = try values.decodeIfPresent(Timezone.self, forKey: .timezone) ?? nil
     }
+    
+    func getCoordinates() -> CLLocationCoordinate2D? {
+        
+        if let latString = coordinates?.latitude,
+           let longString = coordinates?.longitude,
+           let lat = Double(latString),
+           let long = Double(longString) {
+            return CLLocationCoordinate2D(latitude: lat, longitude: long)
+        }
+        
+        return nil
+    }
 }
 
 // MARK: - Coordinates
-class Coordinates: Codable {
+public class Coordinates: Codable {
     let latitude, longitude: String?
 
     init(latitude: String?, longitude: String?) {
@@ -216,7 +280,7 @@ class Coordinates: Codable {
 }
 
 // MARK: - Street
-class Street: Codable {
+public class Street: Codable {
     let number: Int?
     let name: String?
 
@@ -227,7 +291,7 @@ class Street: Codable {
 }
 
 // MARK: - Timezone
-class Timezone: Codable {
+public class Timezone: Codable {
     let offset, timezoneDescription: String?
 
     enum CodingKeys: String, CodingKey {
@@ -242,7 +306,7 @@ class Timezone: Codable {
 }
 
 // MARK: - Login
-class Login: Codable {
+public class Login: Codable {
     let uuid, username, password, salt: String?
     let md5, sha1, sha256: String?
 
@@ -258,7 +322,7 @@ class Login: Codable {
 }
 
 // MARK: - Name
-class Name: Codable {
+public class Name: Codable {
     let title, first, last: String?
 
     init(title: String?, first: String?, last: String?) {
@@ -269,7 +333,7 @@ class Name: Codable {
 }
 
 // MARK: - Picture
-class Picture: Codable {
+public class Picture: Codable {
     let large, medium, thumbnail: String?
 
     init(large: String?, medium: String?, thumbnail: String?) {

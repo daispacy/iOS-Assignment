@@ -24,7 +24,7 @@ class iOS_AssignmentTests: XCTestCase {
         
         Request.getUsers(page: 1, pageSize: 50, seed: nil) { (response, error) in
             #if DEBUG
-            print("\(String(describing: response?.info?.seed)) \(#function)")
+            print("\(String(describing: response?.results?.compactMap({$0.gender}))) \(#function)")
             #endif
             XCTAssert(error == nil, error.debugDescription)
             
